@@ -25,8 +25,6 @@
 --
 -----------------------------------------------------------
 
-{-# OPTIONS_GHC -funbox-strict-fields #-}
-
 module Control.Concurrent.Longrun.Variable where
 
 import Control.Concurrent.STM
@@ -36,11 +34,11 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Concurrent.Longrun.Base
 
 data Var a = Var
-    { vName     :: !ProcName
-    , vVar      :: !(TVar a)
+    { vName     :: ProcName
+    , vVar      :: TVar a
     }
-data GetEnd a = GetEnd !(Var a)
-data SetEnd a = SetEnd !(Var a)
+data GetEnd a = GetEnd (Var a)
+data SetEnd a = SetEnd (Var a)
 
 -- | Create new variable.
 newVar :: (Show a) => ProcName -> a -> Process (Var a)

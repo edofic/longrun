@@ -25,10 +25,8 @@
 --
 -----------------------------------------------------------
 
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# OPTIONS_GHC -funbox-strict-fields #-}
 
 module Control.Concurrent.Longrun.Base
 ( AppConfig (AppConfig)
@@ -89,12 +87,12 @@ type ProcNames = [ProcName]
 type Logger = String -> Priority -> String -> IO ()
 
 data ProcConfig = ProcConfig
-    { procName      :: !ProcNames
-    , procChilds    :: !(TVar (Set Child))
-    , procLogger    :: !Logger
+    { procName      :: ProcNames
+    , procChilds    :: TVar (Set Child)
+    , procLogger    :: Logger
     }
 
-data Child = forall a . (Terminator a) => Child !a
+data Child = forall a . (Terminator a) => Child a
 
 -- | An interface for items that can be terminated.
 class Terminator a where

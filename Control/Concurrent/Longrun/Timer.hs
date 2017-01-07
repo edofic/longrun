@@ -25,8 +25,6 @@
 --
 -----------------------------------------------------------
 
-{-# OPTIONS_GHC -funbox-strict-fields #-}
-
 module Control.Concurrent.Longrun.Timer where
 
 import Control.Concurrent
@@ -38,12 +36,12 @@ import Control.Concurrent.Longrun.Base
 import Control.Concurrent.Longrun.Subprocess
 
 data Timer = Timer
-    { tParent   :: !ThreadId
-    , tName     :: !ProcName
-    , tTimeout  :: !Double
-    , tAction   :: !(Process ())
-    , tRunning  :: !(TVar (Maybe (Subprocess ())))
-    , tExpired  :: !(TVar Bool)
+    { tParent   :: ThreadId
+    , tName     :: ProcName
+    , tTimeout  :: Double
+    , tAction   :: Process ()
+    , tRunning  :: TVar (Maybe (Subprocess ()))
+    , tExpired  :: TVar Bool
     }
 
 -- | Create new timer.

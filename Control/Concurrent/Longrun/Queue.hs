@@ -25,8 +25,6 @@
 --
 -----------------------------------------------------------
 
-{-# OPTIONS_GHC -funbox-strict-fields #-}
-
 module Control.Concurrent.Longrun.Queue where
 
 import Control.Concurrent.STM
@@ -36,14 +34,14 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Concurrent.Longrun.Base
 
 data Queue a = Queue
-    { qName     :: !ProcName
-    , qRead     :: !(STM a)
-    , qWrite    :: !(a -> STM ())
-    , qTryPeek  :: !(STM (Maybe a))
+    { qName     :: ProcName
+    , qRead     :: STM a
+    , qWrite    :: a -> STM ()
+    , qTryPeek  :: STM (Maybe a)
     }
 
-data ReadEnd a = ReadEnd !(Queue a)
-data WriteEnd a = WriteEnd !(Queue a)
+newtype ReadEnd a = ReadEnd (Queue a)
+newtype WriteEnd a = WriteEnd (Queue a)
 
 -- | Create new queue.
 newQueue :: Maybe Int -> ProcName -> Process (Queue a)

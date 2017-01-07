@@ -65,7 +65,7 @@ library
   -- other-modules:
 
   -- LANGUAGE extensions used by modules in this package.
-  other-extensions:    CPP, RankNTypes, ExistentialQuantification
+  other-extensions: StrictData
 
   -- Other library packages from which modules are imported.
   build-depends:
