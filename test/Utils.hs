@@ -2,6 +2,7 @@ module Utils where
 
 import Control.Exception (SomeException, catch)
 import Control.Concurrent.Longrun (Process, runAppWithConfig, AppConfig (AppConfig))
+import Control.Monad (replicateM_)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Char (isSpace)
 import Data.Int (Int64)
@@ -52,13 +53,13 @@ getUsedMemory = do
   Mem.performGC  -- stats are only refresed after a GC cycle
   Stats.currentBytesUsed <$> Stats.getGCStats
 
-assertConstantMemory :: MonadIO m => Int64 -> Double -> m a -> m Assertion
+assertConstantMemory :: MonadIO m => Int -> Double -> m a -> m Assertion
 assertConstantMemory baseIterations maxRatio block = do
     multiplier <- liftIO $ lookupEnv "ITERATION_MULTIPLIER"
-    _ <- block
-    afterOne <- liftIO $ getUsedMemory
     let iterations = baseIterations * (read $ fromMaybe "1" multiplier)
-        upperBound = round $ fromIntegral afterOne * maxRatio
+    _ <- replicateM_ iterations block
+    afterOne <- liftIO $ getUsedMemory
+    let upperBound = round $ fromIntegral afterOne * maxRatio
     go iterations upperBound
     where
     go i upperBound | i <= 0 = return $ assertString ""
