@@ -26,7 +26,9 @@
 -----------------------------------------------------------
 
 module Control.Concurrent.Longrun
-    ( module Control.Concurrent.Longrun
+    ( onChangeVar
+    , readQueueTimeout
+    , readQueueTimeout'
     , module Control.Concurrent.Longrun.Base
     , module Control.Concurrent.Longrun.Subprocess
     , module Control.Concurrent.Longrun.Variable
