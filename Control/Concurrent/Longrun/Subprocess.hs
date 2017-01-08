@@ -96,5 +96,5 @@ stop (Subprocess a) = do
 
 -- | Stop a subprocess, don't care about running state
 stop_ :: Subprocess a -> Process ()
-stop_ p = stop p >>= \_ -> return ()
+stop_ p = stop p >> return ()
 
