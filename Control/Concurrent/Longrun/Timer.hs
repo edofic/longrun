@@ -27,10 +27,10 @@
 
 module Control.Concurrent.Longrun.Timer where
 
-import Control.Concurrent
-import Control.Concurrent.STM
-import Control.Monad
+import Control.Concurrent (ThreadId, myThreadId)
+import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
+import qualified Control.Concurrent.STM as STM
 
 import Control.Concurrent.Longrun.Base
 import Control.Concurrent.Longrun.Subprocess
@@ -40,8 +40,8 @@ data Timer = Timer
     , tName     :: ProcName
     , tTimeout  :: Double
     , tAction   :: Process ()
-    , tRunning  :: TVar (Maybe (Subprocess ()))
-    , tExpired  :: TVar Bool
+    , tRunning  :: STM.TVar (Maybe (Subprocess ()))
+    , tExpired  :: STM.TVar Bool
     }
 
 -- | Create new timer.
@@ -49,8 +49,8 @@ newTimer :: ProcName -> Double -> Process () -> Process Timer
 newTimer name seconds action = group name $ do
     trace $ "newTimer, seconds: " ++ show seconds
     parent <- liftIO $ Control.Concurrent.myThreadId
-    running <- liftIO $ newTVarIO Nothing
-    expired <- liftIO $ newTVarIO False
+    running <- liftIO $ STM.newTVarIO Nothing
+    expired <- liftIO $ STM.newTVarIO False
     return $ Timer
         { tParent = parent
         , tName = name
@@ -70,11 +70,11 @@ _manipulateTimer t manipulator = group (tName t) $ do
 
 _stopTimer :: Timer -> Process Bool
 _stopTimer t = do
-    (running, expired) <- liftIO $ atomically $ do
-        running <- readTVar $ tRunning t
-        expired <- readTVar $ tExpired t
-        writeTVar (tRunning t) Nothing
-        writeTVar (tExpired t) False
+    (running, expired) <- liftIO $ STM.atomically $ do
+        running <- STM.readTVar $ tRunning t
+        expired <- STM.readTVar $ tExpired t
+        STM.writeTVar (tRunning t) Nothing
+        STM.writeTVar (tExpired t) False
         return (running, expired)
     case running of
         Nothing -> return False
@@ -92,10 +92,10 @@ restartTimer t = _manipulateTimer t $ do
     d <- spawnTask "delayed" $ ungroup $ do
         sleep $ tTimeout t
         trace "timer expired"
-        liftIO $ atomically $ writeTVar (tExpired t) True
+        liftIO $ STM.atomically $ STM.writeTVar (tExpired t) True
         mask_ $ tAction t `onFailureSignal` parent
 
-    liftIO $ atomically $ writeTVar (tRunning t) $ Just d
+    liftIO $ STM.atomically $ STM.writeTVar (tRunning t) $ Just d
     trace $ "restartTimer, was running: " ++ show wasRunning
     return wasRunning
 
