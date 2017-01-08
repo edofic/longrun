@@ -2,6 +2,7 @@ module TestTimer (
     testTimer
 ) where
 
+import Control.Monad (forever)
 import System.Log.Logger (Priority(INFO))
 import Test.Framework (Test, testGroup, buildTest)
 import Test.Framework.Providers.HUnit (testCase)

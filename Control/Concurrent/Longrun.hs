@@ -37,6 +37,7 @@ module Control.Concurrent.Longrun
     ) where
 
 import Control.Concurrent.Async (async, cancel)
+import Control.Monad (forever)
 import Control.Monad.IO.Class (liftIO)
 import qualified Control.Concurrent.STM as STM
 

@@ -7,11 +7,13 @@ import TestSubprocess (testSubprocess)
 import TestTimer (testTimer)
 import TestVariable (testVariable)
 import TestWait (testWait)
+import TestBase (testBase)
 
 
 main :: IO ()
 main = defaultMain
-    [ testLongrun
+    [ testBase
+    , testLongrun
     , testQueue
     , testSubprocess
     , testTimer

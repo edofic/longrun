@@ -2,7 +2,7 @@ module TestLongrun (
     testLongrun
 ) where
 
-import Control.Monad (forM_)
+import Control.Monad (forM_, forever)
 import Control.Monad.IO.Class (liftIO)
 import System.Random (newStdGen, randoms)
 import Test.Framework (Test, buildTest, testGroup)

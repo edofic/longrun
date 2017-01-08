@@ -44,7 +44,6 @@ module Control.Concurrent.Longrun.Base
 , addChild
 , assert
 , die
-, forever
 , mkChildConfig
 , getChilds
 , getTid
@@ -72,6 +71,7 @@ import Control.Concurrent.STM (TVar, atomically, newTVarIO, readTVar, modifyTVar
 import Control.DeepSeq (NFData, force)
 import Control.Exception
     (Exception, SomeException, bracket, evaluate, finally, mask_, try)
+import Control.Monad (forever)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Reader.Class (MonadReader, asks, local)
 import Control.Monad.Trans.Reader (ReaderT, runReaderT)
@@ -120,15 +120,6 @@ trace = logM DEBUG
 -- | Force expression evaluation
 force :: (NFData a) => a -> Process a
 force = liftIO . Control.Exception.evaluate . Control.DeepSeq.force
-
--- | Forever implementation from Control.Monad in combination with transformers
--- has some problem with memory leak, use this version instead.
--- Make sure to keep type signature "forever :: Process () -> Process ()".
--- For example, if the type signature is generalized to
--- "forever :: Monad m => m a -> m b",as suggested by ght,
--- the function still leaks memory.
-forever :: Process () -> Process ()
-forever act = act >> forever act
 
 -- | Delay for a number of seconds
 threadDelaySec :: Double -> IO ()

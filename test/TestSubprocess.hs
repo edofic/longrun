@@ -4,8 +4,7 @@ module TestSubprocess (
 
 import Control.Concurrent.Longrun
 import Control.Concurrent.STM (atomically, readTVar)
-import Control.Monad (replicateM_)
-import Control.Monad (when)
+import Control.Monad (when, replicateM_, forever)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader.Class (asks)
 import Data.Int (Int64)
