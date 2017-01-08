@@ -30,15 +30,15 @@ module Control.Concurrent.Longrun
     , readQueueTimeout
     , readQueueTimeout'
     , module Control.Concurrent.Longrun.Base
-    , module Control.Concurrent.Longrun.Subprocess
-    , module Control.Concurrent.Longrun.Variable
     , module Control.Concurrent.Longrun.Queue
+    , module Control.Concurrent.Longrun.Subprocess
     , module Control.Concurrent.Longrun.Timer
+    , module Control.Concurrent.Longrun.Variable
     ) where
 
-import Control.Concurrent.Async
-import Control.Concurrent.STM
+import Control.Concurrent.Async (async, cancel)
 import Control.Monad.IO.Class (liftIO)
+import qualified Control.Concurrent.STM as STM
 
 import Control.Concurrent.Longrun.Base
 import Control.Concurrent.Longrun.Subprocess
@@ -65,10 +65,10 @@ onChangeVar procname initial (GetEnd (Var varname var)) f act = group procname $
         return $ Child p
       where
         loop x = do
-            y <- liftIO $ atomically $ do
-                y <- readTVar var >>= return . f
+            y <- liftIO $ STM.atomically $ do
+                y <- STM.readTVar var >>= return . f
                 case y == x of
-                    True -> retry
+                    True -> STM.retry
                     False -> return y
             trace $ "variable " ++ show varname ++ " changed, triggering action"
             act x y
@@ -77,22 +77,22 @@ onChangeVar procname initial (GetEnd (Var varname var)) f act = group procname $
 -- | Return (Just msg) or Nothing on timeout.
 readQueueTimeout :: ReadEnd a -> Double -> Process (Maybe a)
 readQueueTimeout (ReadEnd q) timeout = liftIO $ do
-    expired <- newTVarIO False
+    expired <- STM.newTVarIO False
     task <- async $ do
         threadDelaySec timeout
-        atomically $ writeTVar expired True
-    ready <- atomically $ do
+        STM.atomically $ STM.writeTVar expired True
+    ready <- STM.atomically $ do
         val <- qTryPeek q
-        end <- readTVar expired
+        end <- STM.readTVar expired
         case (end, val) of
             (True, _) -> return False
             (False, Just _) -> return True
-            _ -> retry
+            _ -> STM.retry
     cancel task
     case ready of
         False -> return Nothing
         True -> do
-            msg <- atomically $ qRead q
+            msg <- STM.atomically $ qRead q
             return $ Just msg
 
 readQueueTimeout' :: Queue a -> Double -> Process (Maybe a)
