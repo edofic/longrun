@@ -132,7 +132,7 @@ forever act = act >> forever act
 
 -- | Delay for a number of seconds
 threadDelaySec :: Double -> IO ()
-threadDelaySec sec = threadDelay . round . (1000000*) $ sec
+threadDelaySec sec = threadDelay $ round $ 1000000 * sec
 
 -- | Delay for a number of seconds (Process version)
 sleep :: Double -> Process ()
