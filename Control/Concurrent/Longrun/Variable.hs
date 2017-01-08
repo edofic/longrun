@@ -27,15 +27,15 @@
 
 module Control.Concurrent.Longrun.Variable where
 
-import Control.Concurrent.STM
 import Control.DeepSeq (NFData)
 import Control.Monad.IO.Class (liftIO)
+import qualified Control.Concurrent.STM as STM
 
 import Control.Concurrent.Longrun.Base
 
 data Var a = Var
     { vName     :: ProcName
-    , vVar      :: TVar a
+    , vVar      :: STM.TVar a
     }
 data GetEnd a = GetEnd (Var a)
 data SetEnd a = SetEnd (Var a)
@@ -44,20 +44,20 @@ data SetEnd a = SetEnd (Var a)
 newVar :: (Show a) => ProcName -> a -> Process (Var a)
 newVar name val = group name $ do
     trace $ "newVar, initial: " ++ show val
-    var <- liftIO $ newTVarIO val
+    var <- liftIO $ STM.newTVarIO val
     return $ Var name var
 
 -- | Bind existing TVar to a variable
-newVarBind :: (Show a) => ProcName -> (TVar a) -> Process (Var a)
+newVarBind :: (Show a) => ProcName -> (STM.TVar a) -> Process (Var a)
 newVarBind name var = group name $ do
-    val <- liftIO $ atomically $ readTVar var
+    val <- liftIO $ STM.atomically $ STM.readTVar var
     trace $ "newVarBind, initial: " ++ show val
     return $ Var name var
 
 -- | Get variable content.
 getVar :: (Show a) => GetEnd a -> Process a
 getVar (GetEnd (Var name var)) = group name $ do
-    val <- liftIO $ atomically $ readTVar var
+    val <- liftIO $ STM.atomically $ STM.readTVar var
     trace $ "getVar, value: " ++ show val
     return val
 
@@ -70,7 +70,7 @@ setVar :: (Show a, NFData a) => SetEnd a -> a -> Process ()
 setVar (SetEnd (Var name var)) val = group name $ do
     val' <- force val
     trace $ "setVar, value: " ++ show val'
-    liftIO $ atomically $ writeTVar var val'
+    liftIO $ STM.atomically $ STM.writeTVar var val'
 
 -- | Set variable content (operate on Var instead of SetEnd)
 setVar' :: (Show a, NFData a) => Var a -> a -> Process ()
@@ -79,10 +79,10 @@ setVar' = setVar . SetEnd
 -- | Modify variable content.
 modifyVar :: (Show a, NFData a) => Var a -> (a -> a) -> Process (a,a)
 modifyVar (Var name var) f = group name $ do
-    (oldValue, newValue) <- liftIO $ atomically $ do
-        a <- readTVar var
-        modifyTVar var f
-        b <- readTVar var
+    (oldValue, newValue) <- liftIO $ STM.atomically $ do
+        a <- STM.readTVar var
+        STM.modifyTVar var f
+        b <- STM.readTVar var
         return (a,b)
     newValue' <- force newValue
     trace $ "modifyVar: " ++ show oldValue ++ " -> " ++ show newValue'
