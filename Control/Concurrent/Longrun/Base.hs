@@ -68,7 +68,7 @@ module Control.Concurrent.Longrun.Base
 
 import Control.Concurrent
     (ThreadId, myThreadId, killThread, threadDelay, throwTo)
-import Control.Concurrent.STM (TVar, atomically, newTVarIO, readTVar, writeTVar)
+import Control.Concurrent.STM (TVar, atomically, newTVarIO, readTVar, modifyTVar')
 import Control.DeepSeq (NFData, force)
 import Control.Exception
     (Exception, SomeException, bracket, evaluate, finally, mask_, try)
@@ -177,9 +177,7 @@ getChilds = do
 modifyChilds :: (Set Child -> Set Child) -> Process ()
 modifyChilds f = do
     var <- asks procChilds
-    liftIO $ atomically $ do
-        childs <- readTVar var
-        writeTVar var $! f childs
+    liftIO $ atomically $ modifyTVar' var f
 
 -- | Add child to process config.
 addChild :: Child -> Process ()
