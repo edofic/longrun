@@ -46,17 +46,21 @@ newtype WriteEnd a = WriteEnd (Queue a)
 
 -- | Create new queue.
 newQueue :: Maybe Int -> ProcName -> Process (Queue a)
-newQueue mBound name = group name $ do
-    (readFunc, writeFunc, tryPeekFunc) <- case mBound of
-        Nothing -> do
-            trace $ "newQueue (unbounded)"
-            q <- liftIO $ STM.newTQueueIO
-            return $ (STM.readTQueue q, STM.writeTQueue q, STM.tryPeekTQueue q)
-        Just bound -> do
-            trace $ "newQueue (bounded " ++ show bound ++ ")"
-            q <- liftIO $ STM.newTBQueueIO bound
-            return $ (STM.readTBQueue q, STM.writeTBQueue q, STM.tryPeekTBQueue q)
-    return $ Queue name readFunc writeFunc tryPeekFunc
+newQueue mBound name = group name $ case mBound of
+    Nothing -> do
+        trace $ "newQueue (unbounded)"
+        q <- liftIO $ STM.newTQueueIO
+        return $ Queue name
+                       (STM.readTQueue q)
+                       (STM.writeTQueue q)
+                       (STM.tryPeekTQueue q)
+    Just bound -> do
+        trace $ "newQueue (bounded " ++ show bound ++ ")"
+        q <- liftIO $ STM.newTBQueueIO bound
+        return $ Queue name
+                       (STM.readTBQueue q)
+                       (STM.writeTBQueue q)
+                       (STM.tryPeekTBQueue q)
 
 -- | Create one element bounded queue.
 newQueue1 :: ProcName -> Process (Queue a)
