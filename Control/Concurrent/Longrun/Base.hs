@@ -165,9 +165,7 @@ group name action = local f action where
 -- | Remove one level of process name.
 ungroup :: Process a -> Process a
 ungroup action = local f action where
-   f cfg = cfg {procName = strip (procName cfg)}
-   strip [] = []
-   strip x = tail x
+   f cfg = cfg {procName = drop 1 (procName cfg)}
 
 getChilds :: Process [Child]
 getChilds = do
