@@ -27,11 +27,11 @@
 
 module Control.Concurrent.Longrun.Subprocess where
 
-import Control.Concurrent
-import Control.Exception
-import Control.Monad.IO.Class
-import qualified Control.Concurrent.Async as A
+import Control.Concurrent (myThreadId, killThread, newEmptyMVar, takeMVar, putMVar)
+import Control.Exception (SomeException)
+import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader.Class (asks, ask)
+import qualified Control.Concurrent.Async as A
 
 import Control.Concurrent.Longrun.Base
 
